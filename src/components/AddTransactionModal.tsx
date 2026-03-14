@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { X, ArrowUpRight, ArrowDownRight, ScanLine, Loader2 } from 'lucide-react';
 import { useFinanceStore } from '../store/financeStore';
+import { GoogleGenAI, Type } from '@google/genai';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -13,8 +14,73 @@ export default function AddTransactionModal({ isOpen, onClose }: AddTransactionM
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { addTransaction, loading } = useFinanceStore();
+
+  const handleScanReceipt = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsScanning(true);
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64Data = (reader.result as string).split(',')[1];
+        
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const response = await ai.models.generateContent({
+          model: 'gemini-3-flash-preview',
+          contents: {
+            parts: [
+              {
+                inlineData: {
+                  mimeType: file.type,
+                  data: base64Data
+                }
+              },
+              {
+                text: "Extract the total amount, category, and a short description from this receipt. Return JSON."
+              }
+            ]
+          },
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                amount: { type: Type.NUMBER, description: "Total amount on the receipt" },
+                category: { type: Type.STRING, description: "A short 1-2 word category (e.g., Groceries, Dining, Electronics)" },
+                description: { type: Type.STRING, description: "A short description of the purchase or merchant name" }
+              },
+              required: ["amount", "category", "description"]
+            }
+          }
+        });
+
+        if (response.text) {
+          try {
+            const data = JSON.parse(response.text);
+            setAmount(data.amount.toString());
+            setCategory(data.category);
+            setDescription(data.description);
+            setType('expense'); // Receipts are usually expenses
+          } catch (err) {
+            console.error("Failed to parse AI response", err);
+            alert("Failed to extract data from receipt. Please try again.");
+          }
+        }
+        setIsScanning(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      };
+    } catch (error) {
+      console.error("Error scanning receipt:", error);
+      alert("Error scanning receipt.");
+      setIsScanning(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +117,24 @@ export default function AddTransactionModal({ isOpen, onClose }: AddTransactionM
 
             <div className="relative z-10">
               <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold text-white tracking-tight">New Transaction</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-bold text-white tracking-tight">New Transaction</h2>
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isScanning}
+                    className="flex items-center gap-1.5 bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20 text-[#00f0ff] px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border border-[#00f0ff]/20 disabled:opacity-50"
+                  >
+                    {isScanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <ScanLine className="w-4 h-4" />}
+                    {isScanning ? 'Scanning...' : 'Scan Receipt'}
+                  </button>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    ref={fileInputRef}
+                    onChange={handleScanReceipt}
+                  />
+                </div>
                 <button onClick={onClose} className="text-zinc-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full">
                   <X className="w-5 h-5" />
                 </button>

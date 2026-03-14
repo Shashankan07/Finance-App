@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { useFinanceStore } from '../store/financeStore';
-import { Download, LogOut, User, Mail, ShieldCheck } from 'lucide-react';
+import { useThemeStore } from '../store/themeStore';
+import { Download, LogOut, User, Mail, ShieldCheck, CloudUpload, Moon, Sun } from 'lucide-react';
 import { auth } from '../firebase';
-import { signOut } from 'firebase/auth';
+import { signOut, GoogleAuthProvider, linkWithPopup, signInWithPopup } from 'firebase/auth';
 
 export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
   const { user } = useAuthStore();
   const { transactions, savings, goals } = useFinanceStore();
+  const { theme, toggleTheme } = useThemeStore();
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -42,6 +45,82 @@ export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
     URL.revokeObjectURL(url);
   };
 
+  const handleSaveToDrive = async () => {
+    try {
+      setIsUploading(true);
+      const provider = new GoogleAuthProvider();
+      provider.addScope('https://www.googleapis.com/auth/drive.file');
+      
+      provider.setCustomParameters({
+        prompt: 'consent'
+      });
+
+      let result;
+      try {
+        if (auth.currentUser?.isAnonymous) {
+          result = await linkWithPopup(auth.currentUser, provider);
+        } else {
+          result = await signInWithPopup(auth, provider);
+        }
+      } catch (linkError: any) {
+        if (linkError.code === 'auth/credential-already-in-use') {
+           result = await signInWithPopup(auth, provider);
+        } else {
+           throw linkError;
+        }
+      }
+
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const token = credential?.accessToken;
+      
+      if (!token) {
+        throw new Error("Could not get Google Access Token.");
+      }
+
+      const data = {
+        user: {
+          displayName: user?.displayName,
+          email: user?.email,
+          uid: user?.uid,
+        },
+        transactions,
+        savings,
+        goals,
+        exportDate: new Date().toISOString(),
+      };
+
+      const fileContent = JSON.stringify(data, null, 2);
+      const metadata = {
+        name: `FinanceApp_Backup_${new Date().toISOString().split('T')[0]}.json`,
+        mimeType: 'application/json',
+      };
+
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', new Blob([fileContent], { type: 'application/json' }));
+
+      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: form,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error?.message || "Failed to upload to Google Drive");
+      }
+
+      alert("Successfully saved backup to your Google Drive!");
+    } catch (error: any) {
+      console.error('Error saving to drive:', error);
+      alert(`Error saving to Google Drive: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       <motion.div variants={itemVariants} className="flex items-center justify-between mb-8">
@@ -72,6 +151,20 @@ export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
         <div className="space-y-4">
           <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
             <div>
+              <h4 className="text-white font-medium">Appearance</h4>
+              <p className="text-sm text-zinc-400 mt-1">Switch between dark and light mode.</p>
+            </div>
+            <button 
+              onClick={toggleTheme}
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-colors font-medium text-sm"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            </button>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
+            <div>
               <h4 className="text-white font-medium">Export Your Data</h4>
               <p className="text-sm text-zinc-400 mt-1">Download a copy of your transactions, savings, and goals.</p>
             </div>
@@ -80,6 +173,25 @@ export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
               className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-colors font-medium text-sm"
             >
               <Download className="w-4 h-4" /> Export JSON
+            </button>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-center justify-between">
+            <div>
+              <h4 className="text-blue-400 font-medium">Save to Google Drive</h4>
+              <p className="text-sm text-blue-400/70 mt-1">Securely back up your data directly to your personal Google Drive.</p>
+            </div>
+            <button 
+              onClick={handleSaveToDrive}
+              disabled={isUploading}
+              className="flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-4 py-2 rounded-xl transition-colors font-medium text-sm disabled:opacity-50"
+            >
+              {isUploading ? (
+                <div className="w-4 h-4 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
+              ) : (
+                <CloudUpload className="w-4 h-4" />
+              )}
+              {isUploading ? 'Saving...' : 'Save to Drive'}
             </button>
           </div>
 

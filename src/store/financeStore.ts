@@ -38,6 +38,7 @@ interface FinanceState {
   transactions: Transaction[];
   savings: Saving[];
   goals: Goal[];
+  budget: number | null;
   loading: boolean;
   error: string | null;
   fetchTransactions: () => void;
@@ -49,16 +50,20 @@ interface FinanceState {
   fetchGoals: () => void;
   addGoal: (goal: Omit<Goal, 'id' | 'userId'>) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
+  fetchBudget: () => void;
+  updateBudget: (budget: number) => Promise<void>;
 }
 
 let unsubscribeTransactions: (() => void) | null = null;
 let unsubscribeSavings: (() => void) | null = null;
 let unsubscribeGoals: (() => void) | null = null;
+let unsubscribeBudget: (() => void) | null = null;
 
 export const useFinanceStore = create<FinanceState>((set, get) => ({
   transactions: [],
   savings: [],
   goals: [],
+  budget: null,
   loading: false,
   error: null,
 
@@ -238,6 +243,40 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     } catch (error: any) {
       set({ error: error.message, loading: false });
       handleFirestoreError(error, OperationType.DELETE, `goals/${id}`);
+    }
+  },
+
+  fetchBudget: () => {
+    const { user } = useAuthStore.getState();
+    if (!user) return;
+
+    if (unsubscribeBudget) unsubscribeBudget();
+
+    try {
+      unsubscribeBudget = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          set({ budget: data.budget || null });
+        }
+      }, (error) => {
+        console.error("Error fetching budget:", error);
+      });
+    } catch (error: any) {
+      console.error("Error setting up budget listener:", error);
+    }
+  },
+
+  updateBudget: async (budget: number) => {
+    const { user } = useAuthStore.getState();
+    if (!user) return;
+    set({ loading: true, error: null });
+    try {
+      const { setDoc } = await import('firebase/firestore');
+      await setDoc(doc(db, 'users', user.uid), { budget }, { merge: true });
+      set({ loading: false });
+    } catch (error: any) {
+      set({ error: error.message, loading: false });
+      handleFirestoreError(error, OperationType.WRITE, `users/${user.uid}`);
     }
   }
 }));

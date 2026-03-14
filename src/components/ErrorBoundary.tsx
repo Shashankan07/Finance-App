@@ -17,6 +17,12 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   private promiseRejectionHandler = (event: PromiseRejectionEvent) => {
+    const reasonStr = String(event.reason);
+    // Ignore benign Vite HMR websocket errors caused by the platform disabling HMR
+    if (reasonStr.includes('WebSocket closed without opened') || reasonStr.includes('failed to connect to websocket')) {
+      return;
+    }
+
     if (event.reason instanceof Error) {
       this.setState({ hasError: true, error: event.reason });
     } else {

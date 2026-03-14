@@ -2,6 +2,7 @@ import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import cors from 'cors';
+import os from 'os';
 
 async function startServer() {
   const app = express();
@@ -98,6 +99,16 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    
+    // Print network interfaces
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name]!) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          console.log(`Server running on http://${iface.address}:${PORT}`);
+        }
+      }
+    }
   });
 }
 

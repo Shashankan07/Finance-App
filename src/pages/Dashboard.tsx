@@ -12,6 +12,7 @@ import SavingsTab from '../components/SavingsTab';
 import GoalsTab from '../components/GoalsTab';
 import AdminTab from '../components/AdminTab';
 import ProfileTab from '../components/ProfileTab';
+import AnalyticsTab from '../components/AnalyticsTab';
 import { 
   LayoutDashboard, 
   Wallet, 
@@ -25,7 +26,8 @@ import {
   CreditCard,
   Zap,
   Shield,
-  User
+  User,
+  AlertCircle
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -59,7 +61,7 @@ function AnimatedCounter({ value, prefix = '' }: { value: number, prefix?: strin
 
 export default function Dashboard() {
   const { user } = useAuthStore();
-  const { transactions, fetchTransactions, deleteTransaction, fetchSavings, fetchGoals, loading, error } = useFinanceStore();
+  const { transactions, fetchTransactions, deleteTransaction, fetchSavings, fetchGoals, fetchBudget, loading, error } = useFinanceStore();
   const [activeTab, setActiveTab] = useState('overview');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -67,7 +69,8 @@ export default function Dashboard() {
     fetchTransactions();
     fetchSavings();
     fetchGoals();
-  }, [fetchTransactions, fetchSavings, fetchGoals]);
+    fetchBudget();
+  }, [fetchTransactions, fetchSavings, fetchGoals, fetchBudget]);
 
   const handleSignOut = async () => {
     try {
@@ -89,6 +92,32 @@ export default function Dashboard() {
     .reduce((sum, t) => sum + t.amount, 0);
     
   const balance = totalIncome - totalExpense;
+
+  // Calculate current month's expenses
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const currentMonthExpenses = transactions
+    .filter(t => {
+      const d = new Date(t.date);
+      return t.type === 'expense' && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    })
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const { budget, updateBudget } = useFinanceStore();
+  const [isSettingBudget, setIsSettingBudget] = useState(false);
+  const [newBudget, setNewBudget] = useState(budget?.toString() || '');
+
+  const handleBudgetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newBudget) {
+      await updateBudget(Number(newBudget));
+      setIsSettingBudget(false);
+    }
+  };
+
+  const budgetProgress = budget ? Math.min((currentMonthExpenses / budget) * 100, 100) : 0;
+  const isOverBudget = budget ? currentMonthExpenses > budget : false;
+  const isNearBudget = budget ? currentMonthExpenses > budget * 0.8 && !isOverBudget : false;
 
   // Prepare chart data
   const chartData = transactions.reduce((acc: any[], curr) => {
@@ -191,10 +220,32 @@ export default function Dashboard() {
             </motion.div>
           )}
 
+          {/* Budget Alerts */}
+          {budget && (isNearBudget || isOverBudget) && activeTab === 'overview' && (
+            <motion.div 
+              variants={itemVariants} 
+              className={`p-4 rounded-xl text-sm backdrop-blur-md flex items-center gap-3 ${
+                isOverBudget 
+                  ? 'bg-red-500/10 border border-red-500/20 text-red-400' 
+                  : 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
+              }`}
+            >
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <div>
+                <p className="font-semibold">
+                  {isOverBudget ? 'Budget Exceeded!' : 'Approaching Budget Limit'}
+                </p>
+                <p>
+                  You have spent ₹{currentMonthExpenses.toLocaleString()} of your ₹{budget.toLocaleString()} monthly budget.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
           {activeTab === 'overview' && (
             <>
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <motion.div 
                   variants={itemVariants}
                   className="bg-black/40 border border-white/10 rounded-[2rem] p-8 backdrop-blur-2xl relative overflow-hidden shadow-[0_0_30px_rgba(0,240,255,0.03)]"
@@ -247,6 +298,64 @@ export default function Dashboard() {
                     </div>
                     <div className="w-12 h-12 bg-gradient-to-br from-red-500/20 to-transparent border border-red-500/20 text-red-400 rounded-2xl flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.1)]">
                       <ArrowDownRight className="w-6 h-6" />
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Budget Card */}
+                <motion.div 
+                  variants={itemVariants}
+                  className="bg-black/40 border border-white/10 rounded-[2rem] p-8 backdrop-blur-2xl relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="w-full">
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-zinc-400 text-sm font-medium">Monthly Budget</p>
+                        <button 
+                          onClick={() => setIsSettingBudget(!isSettingBudget)}
+                          className="text-xs text-[#00f0ff] hover:underline"
+                        >
+                          {budget ? 'Edit' : 'Set Budget'}
+                        </button>
+                      </div>
+                      
+                      {isSettingBudget ? (
+                        <form onSubmit={handleBudgetSubmit} className="flex gap-2 mt-2">
+                          <input 
+                            type="number" 
+                            value={newBudget}
+                            onChange={(e) => setNewBudget(e.target.value)}
+                            placeholder="Amount"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:border-[#00f0ff]/50"
+                          />
+                          <button type="submit" className="bg-[#00f0ff]/20 text-[#00f0ff] px-3 py-1 rounded-lg text-sm font-medium">
+                            Save
+                          </button>
+                        </form>
+                      ) : (
+                        <>
+                          <h2 className="text-3xl font-bold tracking-tight text-white">
+                            {budget ? `₹${budget.toLocaleString()}` : 'Not set'}
+                          </h2>
+                          {budget && (
+                            <div className="mt-4">
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="text-zinc-400">Spent: ₹{currentMonthExpenses.toLocaleString()}</span>
+                                <span className={isOverBudget ? 'text-red-400' : 'text-zinc-400'}>
+                                  {budgetProgress.toFixed(0)}%
+                                </span>
+                              </div>
+                              <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full rounded-full ${isOverBudget ? 'bg-red-500' : isNearBudget ? 'bg-amber-500' : 'bg-[#00f0ff]'}`}
+                                  style={{ width: `${budgetProgress}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -450,6 +559,7 @@ export default function Dashboard() {
           {activeTab === 'investments' && <InvestmentsTab itemVariants={itemVariants} />}
           {activeTab === 'savings' && <SavingsTab itemVariants={itemVariants} />}
           {activeTab === 'goals' && <GoalsTab itemVariants={itemVariants} />}
+          {activeTab === 'analytics' && <AnalyticsTab itemVariants={itemVariants} />}
           {activeTab === 'admin' && <AdminTab itemVariants={itemVariants} />}
           {activeTab === 'profile' && <ProfileTab itemVariants={itemVariants} />}
 
@@ -458,10 +568,11 @@ export default function Dashboard() {
 
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pt-2 bg-gradient-to-t from-[#050505] via-[#050505]/90 to-transparent pointer-events-none">
-        <nav className="max-w-md mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-2 flex items-center justify-between shadow-[0_10px_40px_rgba(0,0,0,0.5)] pointer-events-auto">
+        <nav className="max-w-md mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-2 flex items-center justify-between shadow-[0_10px_40px_rgba(0,0,0,0.5)] pointer-events-auto overflow-x-auto hide-scrollbar">
           {[
             { id: 'overview', icon: LayoutDashboard, label: 'Overview' },
             { id: 'transactions', icon: CreditCard, label: 'Transactions' },
+            { id: 'analytics', icon: TrendingUp, label: 'Analytics' },
             { id: 'savings', icon: PiggyBank, label: 'Savings' },
             { id: 'goals', icon: Target, label: 'Goals' },
             ...(isAdmin ? [{ id: 'admin', icon: Shield, label: 'Admin' }] : []),
