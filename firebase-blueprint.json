@@ -1,0 +1,123 @@
+{
+  "entities": {
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A financial transaction (income or expense)",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who created the transaction"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of the transaction"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["income", "expense"],
+          "description": "Whether this is an income or expense"
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the transaction"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional details about the transaction"
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the transaction occurred"
+        }
+      },
+      "required": ["userId", "amount", "type", "category", "date"]
+    },
+    "Saving": {
+      "title": "Saving",
+      "description": "A savings bucket",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who created the saving"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the saving bucket"
+        },
+        "icon": {
+          "type": "string",
+          "description": "The icon for the saving bucket"
+        },
+        "current": {
+          "type": "number",
+          "description": "The current amount saved"
+        },
+        "target": {
+          "type": "number",
+          "description": "The target amount to save"
+        },
+        "color": {
+          "type": "string",
+          "description": "The color for the saving bucket"
+        }
+      },
+      "required": ["userId", "name", "icon", "current", "target", "color"]
+    },
+    "Goal": {
+      "title": "Goal",
+      "description": "A financial goal",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who created the goal"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the goal"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The target amount for the goal"
+        },
+        "deadline": {
+          "type": "string",
+          "description": "The deadline for the goal"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["in-progress", "completed"],
+          "description": "The status of the goal"
+        },
+        "progress": {
+          "type": "number",
+          "description": "The progress percentage of the goal"
+        }
+      },
+      "required": ["userId", "title", "amount", "deadline", "status", "progress"]
+    }
+  },
+  "firestore": {
+    "transactions/{transactionId}": {
+      "schema": {
+        "$ref": "#/entities/Transaction"
+      },
+      "description": "Stores all user transactions"
+    },
+    "savings/{savingId}": {
+      "schema": {
+        "$ref": "#/entities/Saving"
+      },
+      "description": "Stores all user savings buckets"
+    },
+    "goals/{goalId}": {
+      "schema": {
+        "$ref": "#/entities/Goal"
+      },
+      "description": "Stores all user financial goals"
+    }
+  }
+}

@@ -1,0 +1,167 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: transactions
+    // Document ID: auto-generated
+    // Fields:
+    //   - userId: string (required) - ID of the user who owns the transaction
+    //   - amount: number (required) - The monetary amount
+    //   - type: string (required, 'income' or 'expense') - Transaction type
+    //   - category: string (required, < 50 chars) - Category name
+    //   - description: string (optional, < 200 chars) - Additional details
+    //   - date: timestamp (required) - When the transaction occurred
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "invotrack25@gmail.com" && request.auth.token.email_verified == true)); // Default admin
+    }
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    
+    function uidUnchanged() {
+      return !('userId' in request.resource.data) ||
+        request.resource.data.userId == request.auth.uid;
+    }
+    
+    function uidNotModified() {
+      return !('userId' in request.resource.data) ||
+        request.resource.data.userId == resource.data.userId;
+    }
+    
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidTransaction(data) {
+      return hasOnlyAllowedFields(['userId', 'amount', 'type', 'category', 'description', 'date']) &&
+             hasRequiredFields(['userId', 'amount', 'type', 'category', 'date']) &&
+             data.userId is string &&
+             data.amount is number && data.amount > 0 &&
+             data.type in ['income', 'expense'] &&
+             validStringLength('category', 1, 50) &&
+             isValidOptionalString('description', 0, 200) &&
+             data.date is timestamp;
+    }
+
+    function isValidSaving(data) {
+      return hasOnlyAllowedFields(['userId', 'name', 'icon', 'current', 'target', 'color']) &&
+             hasRequiredFields(['userId', 'name', 'icon', 'current', 'target', 'color']) &&
+             data.userId is string &&
+             validStringLength('name', 1, 50) &&
+             validStringLength('icon', 1, 50) &&
+             data.current is number && data.current >= 0 &&
+             data.target is number && data.target > 0 &&
+             validStringLength('color', 1, 20);
+    }
+
+    function isValidGoal(data) {
+      return hasOnlyAllowedFields(['userId', 'title', 'amount', 'deadline', 'status', 'progress']) &&
+             hasRequiredFields(['userId', 'title', 'amount', 'deadline', 'status', 'progress']) &&
+             data.userId is string &&
+             validStringLength('title', 1, 100) &&
+             data.amount is number && data.amount > 0 &&
+             validStringLength('deadline', 1, 50) &&
+             data.status in ['in-progress', 'completed'] &&
+             data.progress is number && data.progress >= 0 && data.progress <= 100;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /login_attempts/{attemptId} {
+      allow read: if isAdmin();
+      allow create: if true; // Anyone can log an attempt
+      allow update, delete: if false; // Attempts are append-only
+    }
+
+    match /transactions/{transactionId} {
+      // Users can only read their own transactions
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Users can only create transactions for themselves
+      allow create: if isAuthenticated() && 
+                    isValidTransaction(request.resource.data) && 
+                    request.resource.data.userId == request.auth.uid;
+                    
+      // Users can only update their own transactions, and cannot change the userId
+      allow update: if isDocOwner() && 
+                    isValidTransaction(request.resource.data) && 
+                    uidNotModified();
+                    
+      // Users can only delete their own transactions
+      allow delete: if isDocOwner();
+    }
+
+    match /savings/{savingId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                    isValidSaving(request.resource.data) && 
+                    request.resource.data.userId == request.auth.uid;
+      allow update: if isDocOwner() && 
+                    isValidSaving(request.resource.data) && 
+                    uidNotModified();
+      allow delete: if isDocOwner();
+    }
+
+    match /goals/{goalId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                    isValidGoal(request.resource.data) && 
+                    request.resource.data.userId == request.auth.uid;
+      allow update: if isDocOwner() && 
+                    isValidGoal(request.resource.data) && 
+                    uidNotModified();
+      allow delete: if isDocOwner();
+    }
+  }
+}
