@@ -3,14 +3,14 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { useFinanceStore } from '../store/financeStore';
 import { useThemeStore } from '../store/themeStore';
-import { Download, LogOut, User, Mail, ShieldCheck, CloudUpload, Moon, Sun } from 'lucide-react';
+import { Download, LogOut, User, Mail, ShieldCheck, CloudUpload, Moon, Sun, PiggyBank, Target, ShieldAlert } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut, GoogleAuthProvider, linkWithPopup, signInWithPopup } from 'firebase/auth';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 
-export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
+export default function ProfileTab({ itemVariants, setActiveTab }: { itemVariants: any, setActiveTab?: (tab: string) => void }) {
   const { user } = useAuthStore();
   const { transactions, savings, goals } = useFinanceStore();
   const { theme, toggleTheme } = useThemeStore();
@@ -172,12 +172,17 @@ export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      <motion.div variants={itemVariants} className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-white">Profile & Settings</h2>
+      {/* Header Section */}
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h2 className="text-3xl font-bold text-white tracking-tight">Profile</h2>
+          <p className="text-zinc-400 mt-1">Manage your account and settings</p>
+        </div>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="bg-black/40 border border-white/10 rounded-[2rem] p-8 backdrop-blur-2xl">
-        <div className="flex flex-col items-center text-center mb-8">
+      <motion.div variants={itemVariants} className="bg-black/40 border border-white/10 rounded-[2rem] p-8 backdrop-blur-2xl relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#00f0ff]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="flex flex-col items-center text-center mb-8 relative z-10">
           <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#00f0ff]/20 to-[#10b981]/20 border-2 border-white/10 p-1 mb-4">
             <img 
               src={user?.photoURL || `https://ui-avatars.com/api/?name=${user?.email}&background=0D8ABC&color=fff`} 
@@ -197,43 +202,85 @@ export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
           )}
         </div>
 
-        <div className="space-y-4">
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
+        <div className="space-y-4 relative z-10">
+          {setActiveTab && (
+            <>
+              <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group cursor-pointer" onClick={() => setActiveTab('savings')}>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#10b981]/20 to-transparent border border-[#10b981]/20 flex items-center justify-center">
+                    <PiggyBank className="w-5 h-5 text-[#10b981]" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium group-hover:text-[#10b981] transition-colors">Savings Tracker</h4>
+                    <p className="text-sm text-zinc-500 mt-1">Manage your savings buckets.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group cursor-pointer" onClick={() => setActiveTab('goals')}>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00f0ff]/20 to-transparent border border-[#00f0ff]/20 flex items-center justify-center">
+                    <Target className="w-5 h-5 text-[#00f0ff]" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium group-hover:text-[#00f0ff] transition-colors">Financial Goals</h4>
+                    <p className="text-sm text-zinc-500 mt-1">Track your long-term goals.</p>
+                  </div>
+                </div>
+              </div>
+
+              {user?.email === 'invotrack25@gmail.com' && (
+                <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group cursor-pointer" onClick={() => setActiveTab('admin')}>
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-transparent border border-purple-500/20 flex items-center justify-center">
+                      <ShieldAlert className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-medium group-hover:text-purple-400 transition-colors">Admin Dashboard</h4>
+                      <p className="text-sm text-zinc-500 mt-1">Manage users and system activity.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group">
             <div>
-              <h4 className="text-white font-medium">Appearance</h4>
-              <p className="text-sm text-zinc-400 mt-1">Switch between dark and light mode.</p>
+              <h4 className="text-white font-medium group-hover:text-[#00f0ff] transition-colors">Appearance</h4>
+              <p className="text-sm text-zinc-500 mt-1">Switch between dark and light mode.</p>
             </div>
             <button 
               onClick={toggleTheme}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-colors font-medium text-sm"
+              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white px-4 py-2.5 rounded-xl transition-colors font-medium text-sm border border-white/10"
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
             </button>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group">
             <div>
-              <h4 className="text-white font-medium">Export Your Data</h4>
-              <p className="text-sm text-zinc-400 mt-1">Download a copy of your transactions, savings, and goals.</p>
+              <h4 className="text-white font-medium group-hover:text-[#10b981] transition-colors">Export Your Data</h4>
+              <p className="text-sm text-zinc-500 mt-1">Download a copy of your transactions, savings, and goals.</p>
             </div>
             <button 
               onClick={handleExportData}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-colors font-medium text-sm"
+              className="flex items-center gap-2 bg-[#10b981]/10 hover:bg-[#10b981]/20 text-[#10b981] px-4 py-2.5 rounded-xl transition-colors font-medium text-sm border border-[#10b981]/20"
             >
               <Download className="w-4 h-4" /> Export PDF
             </button>
           </div>
 
-          <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group">
             <div>
-              <h4 className="text-blue-400 font-medium">Save to Google Drive</h4>
-              <p className="text-sm text-blue-400/70 mt-1">Securely back up your data directly to your personal Google Drive.</p>
+              <h4 className="text-white font-medium group-hover:text-blue-400 transition-colors">Save to Google Drive</h4>
+              <p className="text-sm text-zinc-500 mt-1">Securely back up your data directly to your personal Google Drive.</p>
             </div>
             <button 
               onClick={handleSaveToDrive}
               disabled={isUploading}
-              className="flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-4 py-2 rounded-xl transition-colors font-medium text-sm disabled:opacity-50"
+              className="flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-4 py-2.5 rounded-xl transition-colors font-medium text-sm border border-blue-500/20 disabled:opacity-50"
             >
               {isUploading ? (
                 <div className="w-4 h-4 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
@@ -244,14 +291,14 @@ export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
             </button>
           </div>
 
-          <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10 flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group">
             <div>
-              <h4 className="text-red-400 font-medium">Sign Out</h4>
-              <p className="text-sm text-red-400/70 mt-1">Log out of your account on this device.</p>
+              <h4 className="text-white font-medium group-hover:text-red-400 transition-colors">Sign Out</h4>
+              <p className="text-sm text-zinc-500 mt-1">Log out of your account on this device.</p>
             </div>
             <button 
               onClick={handleSignOut}
-              className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 px-4 py-2 rounded-xl transition-colors font-medium text-sm"
+              className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 px-4 py-2.5 rounded-xl transition-colors font-medium text-sm border border-red-500/20"
             >
               <LogOut className="w-4 h-4" /> Sign Out
             </button>

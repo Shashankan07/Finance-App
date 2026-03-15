@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ShieldCheck, Plane, Home, Car, Heart, X, Trash2 } from 'lucide-react';
+import { Plus, ShieldCheck, Plane, Home, Car, Heart, X, Trash2, ArrowLeft } from 'lucide-react';
 import { useFinanceStore } from '../store/financeStore';
 
 const ICONS: Record<string, any> = {
@@ -11,7 +11,7 @@ const ICONS: Record<string, any> = {
   Heart,
 };
 
-export default function SavingsTab({ itemVariants }: { itemVariants: any }) {
+export default function SavingsTab({ itemVariants, setActiveTab }: { itemVariants: any, setActiveTab?: (tab: string) => void }) {
   const { savings, addSaving, deleteSaving } = useFinanceStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState('');
@@ -42,11 +42,25 @@ export default function SavingsTab({ itemVariants }: { itemVariants: any }) {
 
   return (
     <div className="space-y-6">
-      <motion.div variants={itemVariants} className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-white">Savings Buckets</h2>
+      {/* Header Section */}
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          {setActiveTab && (
+            <button 
+              onClick={() => setActiveTab('profile')}
+              className="p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-xl transition-colors border border-white/10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          )}
+          <div>
+            <h2 className="text-3xl font-bold text-white tracking-tight">Savings</h2>
+            <p className="text-zinc-400 mt-1">Manage your savings buckets</p>
+          </div>
+        </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-colors border border-white/10"
+          className="bg-[#10b981] hover:bg-[#10b981]/90 text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.2)]"
         >
           <Plus className="w-4 h-4" /> New Bucket
         </button>

@@ -13,6 +13,7 @@ import GoalsTab from '../components/GoalsTab';
 import AdminTab from '../components/AdminTab';
 import ProfileTab from '../components/ProfileTab';
 import AnalyticsTab from '../components/AnalyticsTab';
+import { TransactionItem } from '../components/TransactionItem';
 import { useThemeStore } from '../store/themeStore';
 import { 
   LayoutDashboard, 
@@ -30,18 +31,19 @@ import {
   User,
   AlertCircle,
   Moon,
-  Sun
+  Sun,
+  BarChart2
 } from 'lucide-react';
 import { 
-  AreaChart, 
-  Area, 
+  LineChart, 
+  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  PieChart,
+  Pie,
   Cell
 } from 'recharts';
 
@@ -65,7 +67,7 @@ function AnimatedCounter({ value, prefix = '' }: { value: number, prefix?: strin
 export default function Dashboard() {
   const { user } = useAuthStore();
   const { transactions, fetchTransactions, deleteTransaction, fetchSavings, fetchGoals, fetchBudget, loading, error } = useFinanceStore();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
@@ -179,9 +181,9 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-zinc-100 flex flex-col font-sans selection:bg-[#00f0ff]/30 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] to-[#020617] text-zinc-100 flex flex-col font-sans selection:bg-[#10b981]/30 relative overflow-hidden">
       {/* Deep Black Gradient Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(0,240,255,0.05),transparent_50%),radial-gradient(ellipse_at_bottom_left,rgba(16,185,129,0.05),transparent_50%)] z-0 pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.05),transparent_50%),radial-gradient(ellipse_at_bottom_left,rgba(0,240,255,0.05),transparent_50%)] z-0 pointer-events-none" />
       <MoneyAnimation />
 
       {/* Main Content */}
@@ -214,15 +216,6 @@ export default function Dashboard() {
               >
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
-              <button 
-                onClick={() => setIsAddModalOpen(true)}
-                className="group relative bg-white text-black px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
-              >
-                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#00f0ff]/0 via-[#00f0ff]/20 to-[#00f0ff]/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-                <div className="absolute inset-0 rounded-xl ring-2 ring-[#00f0ff]/0 group-hover:ring-[#00f0ff]/50 transition-all duration-300 shadow-[0_0_0_rgba(0,240,255,0)] group-hover:shadow-[0_0_20px_rgba(0,240,255,0.4)]" />
-                <Plus className="w-5 h-5 relative z-10" />
-                <span className="relative z-10">Add Transaction</span>
-              </button>
             </div>
           </motion.header>
 
@@ -234,7 +227,7 @@ export default function Dashboard() {
           )}
 
           {/* Budget Alerts */}
-          {budget && (isNearBudget || isOverBudget) && activeTab === 'overview' && (
+          {budget && (isNearBudget || isOverBudget) && activeTab === 'dashboard' && (
             <motion.div 
               variants={itemVariants} 
               className={`p-4 rounded-xl text-sm backdrop-blur-md flex items-center gap-3 ${
@@ -255,18 +248,19 @@ export default function Dashboard() {
             </motion.div>
           )}
 
-          {activeTab === 'overview' && (
+          {activeTab === 'dashboard' && (
             <>
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <motion.div 
                   variants={itemVariants}
-                  className="bg-black/40 border border-white/10 rounded-[2rem] p-8 backdrop-blur-2xl relative overflow-hidden shadow-[0_0_30px_rgba(0,240,255,0.03)]"
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  className="bg-[#0f172a]/80 border border-white/5 rounded-[2rem] p-8 backdrop-blur-2xl relative overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_32px_rgba(16,185,129,0.15)] transition-all duration-300"
                 >
                   <div className="absolute top-0 right-0 p-8 opacity-5">
-                    <Wallet className="w-32 h-32 text-[#00f0ff]" />
+                    <Wallet className="w-32 h-32 text-[#10b981]" />
                   </div>
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[#00f0ff]/30 to-transparent" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[#10b981]/50 to-transparent" />
                   <div className="relative z-10">
                     <p className="text-zinc-400 text-sm font-medium mb-2">Total Balance</p>
                     <h2 className="text-5xl font-bold tracking-tight text-white mb-4">
@@ -281,9 +275,10 @@ export default function Dashboard() {
 
                 <motion.div 
                   variants={itemVariants}
-                  className="bg-black/40 border border-white/10 rounded-[2rem] p-8 backdrop-blur-2xl relative overflow-hidden"
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  className="bg-[#0f172a]/80 border border-white/5 rounded-[2rem] p-8 backdrop-blur-2xl relative overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_32px_rgba(16,185,129,0.15)] transition-all duration-300"
                 >
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[#10b981]/30 to-transparent" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[#10b981]/50 to-transparent" />
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <p className="text-zinc-400 text-sm font-medium mb-2">Total Income</p>
@@ -299,9 +294,10 @@ export default function Dashboard() {
 
                 <motion.div 
                   variants={itemVariants}
-                  className="bg-black/40 border border-white/10 rounded-[2rem] p-8 backdrop-blur-2xl relative overflow-hidden"
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  className="bg-[#0f172a]/80 border border-white/5 rounded-[2rem] p-8 backdrop-blur-2xl relative overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_32px_rgba(239,68,68,0.15)] transition-all duration-300"
                 >
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <p className="text-zinc-400 text-sm font-medium mb-2">Total Expenses</p>
@@ -318,9 +314,10 @@ export default function Dashboard() {
                 {/* Budget Card */}
                 <motion.div 
                   variants={itemVariants}
-                  className="bg-black/40 border border-white/10 rounded-[2rem] p-8 backdrop-blur-2xl relative overflow-hidden"
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  className="bg-[#0f172a]/80 border border-white/5 rounded-[2rem] p-8 backdrop-blur-2xl relative overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_32px_rgba(59,130,246,0.15)] transition-all duration-300"
                 >
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[#3b82f6]/50 to-transparent" />
                   <div className="flex justify-between items-start mb-6">
                     <div className="w-full">
                       <div className="flex justify-between items-center mb-2">
@@ -378,33 +375,23 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <motion.div 
                   variants={itemVariants}
-                  className="lg:col-span-2 bg-black/40 border border-white/10 rounded-[2rem] p-8 backdrop-blur-2xl"
+                  className="lg:col-span-2 bg-[#0f172a]/80 border border-white/5 rounded-[2rem] p-8 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
                 >
                   <h3 className="text-xl font-semibold mb-8 text-white">Cash Flow</h3>
                   <div className="h-[300px] w-full">
                     {chartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                              <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                            </linearGradient>
-                            <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4}/>
-                              <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-                            </linearGradient>
-                          </defs>
+                        <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
                           <XAxis dataKey="name" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
                           <YAxis stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
                           <Tooltip 
-                            contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }}
+                            contentStyle={{ backgroundColor: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }}
                             itemStyle={{ color: '#e4e4e7' }}
                           />
-                          <Area type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
-                          <Area type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorExpense)" />
-                        </AreaChart>
+                          <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#0f172a' }} activeDot={{ r: 6, strokeWidth: 0 }} animationDuration={1500} />
+                          <Line type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={3} dot={{ r: 4, fill: '#ef4444', strokeWidth: 2, stroke: '#0f172a' }} activeDot={{ r: 6, strokeWidth: 0 }} animationDuration={1500} />
+                        </LineChart>
                       </ResponsiveContainer>
                     ) : (
                       <div className="h-full flex items-center justify-center text-zinc-600 font-medium">
@@ -416,25 +403,33 @@ export default function Dashboard() {
 
                 <motion.div 
                   variants={itemVariants}
-                  className="bg-black/40 border border-white/10 rounded-[2rem] p-8 backdrop-blur-2xl flex flex-col"
+                  className="bg-[#0f172a]/80 border border-white/5 rounded-[2rem] p-8 backdrop-blur-2xl flex flex-col shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
                 >
                   <h3 className="text-xl font-semibold mb-8 text-white">Top Categories</h3>
-                  <div className="flex-1 min-h-[200px]">
+                  <div className="flex-1 min-h-[200px] flex items-center justify-center relative">
                     {categoryData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={categoryData} layout="vertical" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                          <XAxis type="number" hide />
-                          <YAxis dataKey="name" type="category" hide />
+                        <PieChart>
                           <Tooltip 
-                            cursor={{fill: 'rgba(255,255,255,0.02)'}}
-                            contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }}
+                            contentStyle={{ backgroundColor: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }}
+                            itemStyle={{ color: '#e4e4e7' }}
                           />
-                          <Bar dataKey="amount" radius={[0, 8, 8, 0]} barSize={32}>
+                          <Pie
+                            data={categoryData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="amount"
+                            animationDuration={1500}
+                            animationBegin={200}
+                          >
                             {categoryData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
+                              <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(0,0,0,0)" />
                             ))}
-                          </Bar>
-                        </BarChart>
+                          </Pie>
+                        </PieChart>
                       </ResponsiveContainer>
                     ) : (
                       <div className="h-full flex items-center justify-center text-zinc-600 font-medium">
@@ -477,35 +472,12 @@ export default function Dashboard() {
                     <div className="text-center py-8 text-zinc-600 font-medium">Loading transactions...</div>
                   ) : transactions.length > 0 ? (
                     transactions.slice(0, 5).map((tx) => (
-                      <div key={tx.id} className="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all cursor-pointer group">
-                        <div className="flex items-center gap-5">
-                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
-                            tx.type === 'income' ? 'bg-gradient-to-br from-[#10b981]/20 to-transparent border border-[#10b981]/20 text-[#10b981]' : 'bg-gradient-to-br from-red-500/20 to-transparent border border-red-500/20 text-red-400'
-                          }`}>
-                            {tx.type === 'income' ? <ArrowUpRight className="w-6 h-6" /> : <ArrowDownRight className="w-6 h-6" />}
-                          </div>
-                          <div>
-                            <p className="font-bold text-white text-lg group-hover:text-[#00f0ff] transition-colors">{tx.category}</p>
-                            <p className="text-sm text-zinc-500 font-medium">{tx.description || 'No description'} • {format(tx.date, 'MMM d, yyyy')}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className={`font-bold text-lg ${tx.type === 'income' ? 'text-[#10b981]' : 'text-white'}`}>
-                            {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                          </div>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteTransaction(tx.id);
-                            }}
-                            className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
+                      <TransactionItem 
+                        key={tx.id} 
+                        tx={tx} 
+                        onDelete={deleteTransaction} 
+                        onCategorize={(tx) => console.log('Categorize', tx)} 
+                      />
                     ))
                   ) : (
                     <div className="text-center py-12 text-zinc-600 font-medium">
@@ -522,43 +494,23 @@ export default function Dashboard() {
               variants={itemVariants}
               className="bg-black/40 border border-white/10 rounded-[2rem] p-8 backdrop-blur-2xl"
             >
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-2xl font-semibold text-white">All Transactions</h3>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                  <h2 className="text-3xl font-bold text-white tracking-tight">Transactions</h2>
+                  <p className="text-zinc-400 mt-1">View and manage your transaction history</p>
+                </div>
               </div>
               <div className="space-y-3">
                 {loading ? (
                   <div className="text-center py-8 text-zinc-600 font-medium">Loading transactions...</div>
                 ) : transactions.length > 0 ? (
                   transactions.map((tx) => (
-                    <div key={tx.id} className="flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 border border-transparent hover:border-white/5 transition-all cursor-pointer group">
-                      <div className="flex items-center gap-5">
-                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
-                          tx.type === 'income' ? 'bg-gradient-to-br from-[#10b981]/20 to-transparent border border-[#10b981]/20 text-[#10b981]' : 'bg-gradient-to-br from-red-500/20 to-transparent border border-red-500/20 text-red-400'
-                        }`}>
-                          {tx.type === 'income' ? <ArrowUpRight className="w-6 h-6" /> : <ArrowDownRight className="w-6 h-6" />}
-                        </div>
-                        <div>
-                          <p className="font-bold text-white text-lg group-hover:text-[#00f0ff] transition-colors">{tx.category}</p>
-                          <p className="text-sm text-zinc-500 font-medium">{tx.description || 'No description'} • {format(tx.date, 'MMM d, yyyy')}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className={`font-bold text-lg ${tx.type === 'income' ? 'text-[#10b981]' : 'text-white'}`}>
-                          {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </div>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteTransaction(tx.id);
-                          }}
-                          className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
+                    <TransactionItem 
+                      key={tx.id} 
+                      tx={tx} 
+                      onDelete={deleteTransaction} 
+                      onCategorize={(tx) => console.log('Categorize', tx)} 
+                    />
                   ))
                 ) : (
                   <div className="text-center py-12 text-zinc-600 font-medium">
@@ -570,25 +522,33 @@ export default function Dashboard() {
           )}
 
           {activeTab === 'investments' && <InvestmentsTab itemVariants={itemVariants} />}
-          {activeTab === 'savings' && <SavingsTab itemVariants={itemVariants} />}
-          {activeTab === 'goals' && <GoalsTab itemVariants={itemVariants} />}
+          {activeTab === 'savings' && <SavingsTab itemVariants={itemVariants} setActiveTab={setActiveTab} />}
+          {activeTab === 'goals' && <GoalsTab itemVariants={itemVariants} setActiveTab={setActiveTab} />}
           {activeTab === 'analytics' && <AnalyticsTab itemVariants={itemVariants} />}
-          {activeTab === 'admin' && <AdminTab itemVariants={itemVariants} />}
-          {activeTab === 'profile' && <ProfileTab itemVariants={itemVariants} />}
+          {activeTab === 'admin' && <AdminTab itemVariants={itemVariants} setActiveTab={setActiveTab} />}
+          {activeTab === 'profile' && <ProfileTab itemVariants={itemVariants} setActiveTab={setActiveTab} />}
 
         </motion.div>
       </main>
 
+      {/* Floating Action Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setIsAddModalOpen(true)}
+        className="fixed bottom-24 right-6 z-50 w-14 h-14 bg-[#10b981] text-white rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(16,185,129,0.4)] hover:shadow-[0_8px_32px_rgba(16,185,129,0.6)] transition-shadow"
+      >
+        <Plus className="w-6 h-6" />
+      </motion.button>
+
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pt-2 bg-gradient-to-t from-[#050505] via-[#050505]/90 to-transparent pointer-events-none">
-        <nav className="max-w-md mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-2 flex items-center justify-between shadow-[0_10px_40px_rgba(0,0,0,0.5)] pointer-events-auto overflow-x-auto hide-scrollbar">
+      <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pt-2 bg-gradient-to-t from-[#020617] via-[#020617]/90 to-transparent pointer-events-none">
+        <nav className="max-w-md mx-auto bg-[#0f172a]/80 backdrop-blur-2xl border border-white/5 rounded-3xl p-2 flex items-center justify-between shadow-[0_10px_40px_rgba(0,0,0,0.5)] pointer-events-auto overflow-x-auto hide-scrollbar">
           {[
-            { id: 'overview', icon: LayoutDashboard, label: 'Overview' },
+            { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
             { id: 'transactions', icon: CreditCard, label: 'Transactions' },
-            { id: 'analytics', icon: TrendingUp, label: 'Analytics' },
-            { id: 'savings', icon: PiggyBank, label: 'Savings' },
-            { id: 'goals', icon: Target, label: 'Goals' },
-            ...(isAdmin ? [{ id: 'admin', icon: Shield, label: 'Admin' }] : []),
+            { id: 'investments', icon: TrendingUp, label: 'Investments' },
+            { id: 'analytics', icon: BarChart2, label: 'Analytics' },
             { id: 'profile', icon: User, label: 'Profile' },
           ].map((item) => {
             const isActive = activeTab === item.id;
@@ -597,13 +557,13 @@ export default function Dashboard() {
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={`relative p-3 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all duration-300 ${
-                  isActive ? 'text-[#00f0ff]' : 'text-zinc-500 hover:text-zinc-300'
+                  isActive ? 'text-[#10b981]' : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="bottomNavIndicator"
-                    className="absolute inset-0 bg-[#00f0ff]/10 rounded-2xl"
+                    className="absolute inset-0 bg-[#10b981]/10 rounded-2xl"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
