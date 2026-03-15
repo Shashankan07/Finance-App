@@ -6,6 +6,9 @@ import { useThemeStore } from '../store/themeStore';
 import { Download, LogOut, User, Mail, ShieldCheck, CloudUpload, Moon, Sun } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut, GoogleAuthProvider, linkWithPopup, signInWithPopup } from 'firebase/auth';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { format } from 'date-fns';
 
 export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
   const { user } = useAuthStore();
@@ -22,27 +25,73 @@ export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
   };
 
   const handleExportData = () => {
-    const data = {
-      user: {
-        displayName: user?.displayName,
-        email: user?.email,
-        uid: user?.uid,
-      },
-      transactions,
-      savings,
-      goals,
-      exportDate: new Date().toISOString(),
-    };
+    const doc = new jsPDF();
+    
+    doc.setFontSize(20);
+    doc.text('Financial Report', 14, 22);
+    
+    doc.setFontSize(11);
+    doc.text(`Generated on: ${format(new Date(), 'MMM dd, yyyy')}`, 14, 30);
+    doc.text(`User: ${user?.displayName || user?.email?.split('@')[0] || 'User'}`, 14, 36);
 
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `finance_data_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Transactions Table
+    doc.setFontSize(14);
+    doc.text('Transactions', 14, 46);
+    
+    const transactionData = transactions.map(t => [
+      format(new Date(t.date), 'MMM dd, yyyy'),
+      t.type.charAt(0).toUpperCase() + t.type.slice(1),
+      t.category,
+      t.description || '-',
+      `Rs. ${t.amount.toLocaleString()}`
+    ]);
+
+    autoTable(doc, {
+      startY: 50,
+      head: [['Date', 'Type', 'Category', 'Description', 'Amount']],
+      body: transactionData,
+      theme: 'grid',
+      headStyles: { fillColor: [0, 240, 255], textColor: [0, 0, 0] },
+    });
+
+    // Savings Table
+    const finalY = (doc as any).lastAutoTable.finalY || 50;
+    doc.text('Savings', 14, finalY + 10);
+    
+    const savingsData = savings.map(s => [
+      s.name,
+      `Rs. ${s.current.toLocaleString()}`,
+      `Rs. ${s.target.toLocaleString()}`
+    ]);
+
+    autoTable(doc, {
+      startY: finalY + 14,
+      head: [['Name', 'Current Amount', 'Target Amount']],
+      body: savingsData,
+      theme: 'grid',
+      headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255] },
+    });
+
+    // Goals Table
+    const finalY2 = (doc as any).lastAutoTable.finalY || finalY + 14;
+    doc.text('Goals', 14, finalY2 + 10);
+    
+    const goalsData = goals.map(g => [
+      g.title,
+      `Rs. ${g.amount.toLocaleString()}`,
+      format(new Date(g.deadline), 'MMM dd, yyyy'),
+      `${g.progress}%`
+    ]);
+
+    autoTable(doc, {
+      startY: finalY2 + 14,
+      head: [['Title', 'Target Amount', 'Deadline', 'Progress']],
+      body: goalsData,
+      theme: 'grid',
+      headStyles: { fillColor: [245, 158, 11], textColor: [255, 255, 255] },
+    });
+
+    doc.save(`finance_report_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
   };
 
   const handleSaveToDrive = async () => {
@@ -137,7 +186,7 @@ export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
               referrerPolicy="no-referrer"
             />
           </div>
-          <h3 className="text-2xl font-bold text-white">{user?.displayName || 'User'}</h3>
+          <h3 className="text-2xl font-bold text-white">{user?.displayName || user?.email?.split('@')[0] || 'User'}</h3>
           <p className="text-zinc-400 flex items-center gap-2 mt-1">
             <Mail className="w-4 h-4" /> {user?.email}
           </p>
@@ -172,7 +221,7 @@ export default function ProfileTab({ itemVariants }: { itemVariants: any }) {
               onClick={handleExportData}
               className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-colors font-medium text-sm"
             >
-              <Download className="w-4 h-4" /> Export JSON
+              <Download className="w-4 h-4" /> Export PDF
             </button>
           </div>
 

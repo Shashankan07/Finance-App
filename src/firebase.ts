@@ -26,6 +26,7 @@ googleProvider.setCustomParameters({
 });
 export const microsoftProvider = new OAuthProvider('microsoft.com');
 export const twitterProvider = new TwitterAuthProvider();
+export const appleProvider = new OAuthProvider('apple.com');
 
 // OTP setup helper
 export const setupRecaptcha = (containerId: string) => {

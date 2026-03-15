@@ -13,6 +13,7 @@ import GoalsTab from '../components/GoalsTab';
 import AdminTab from '../components/AdminTab';
 import ProfileTab from '../components/ProfileTab';
 import AnalyticsTab from '../components/AnalyticsTab';
+import { useThemeStore } from '../store/themeStore';
 import { 
   LayoutDashboard, 
   Wallet, 
@@ -27,7 +28,9 @@ import {
   Zap,
   Shield,
   User,
-  AlertCircle
+  AlertCircle,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -104,6 +107,7 @@ export default function Dashboard() {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const { budget, updateBudget } = useFinanceStore();
+  const { theme, toggleTheme } = useThemeStore();
   const [isSettingBudget, setIsSettingBudget] = useState(false);
   const [newBudget, setNewBudget] = useState(budget?.toString() || '');
 
@@ -198,19 +202,28 @@ export default function Dashboard() {
                 transition={{ delay: 0.5, duration: 0.8 }}
                 className="text-3xl font-bold tracking-tight text-white"
               >
-                Welcome back, {user?.displayName?.split(' ')[0] || 'User'}
+                Welcome back, {user?.displayName || user?.email?.split('@')[0] || 'User'}
               </motion.h1>
               <p className="text-zinc-400 text-sm mt-1">Here is your financial summary for today.</p>
             </div>
-            <button 
-              onClick={() => setIsAddModalOpen(true)}
-              className="group relative bg-white text-black px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
-            >
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#00f0ff]/0 via-[#00f0ff]/20 to-[#00f0ff]/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-              <div className="absolute inset-0 rounded-xl ring-2 ring-[#00f0ff]/0 group-hover:ring-[#00f0ff]/50 transition-all duration-300 shadow-[0_0_0_rgba(0,240,255,0)] group-hover:shadow-[0_0_20px_rgba(0,240,255,0.4)]" />
-              <Plus className="w-5 h-5 relative z-10" />
-              <span className="relative z-10">Add Transaction</span>
-            </button>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={toggleTheme}
+                className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                title="Toggle Theme"
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="group relative bg-white text-black px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
+              >
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#00f0ff]/0 via-[#00f0ff]/20 to-[#00f0ff]/0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                <div className="absolute inset-0 rounded-xl ring-2 ring-[#00f0ff]/0 group-hover:ring-[#00f0ff]/50 transition-all duration-300 shadow-[0_0_0_rgba(0,240,255,0)] group-hover:shadow-[0_0_20px_rgba(0,240,255,0.4)]" />
+                <Plus className="w-5 h-5 relative z-10" />
+                <span className="relative z-10">Add Transaction</span>
+              </button>
+            </div>
           </motion.header>
 
           {error && (
