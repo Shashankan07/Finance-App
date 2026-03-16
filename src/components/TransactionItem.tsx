@@ -31,16 +31,6 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ tx, onDelete, 
       setIsDeleting(true);
       await controls.start({ x: -window.innerWidth, opacity: 0, transition: { duration: 0.2 } });
       onDelete(tx.id);
-    } else if (offset > 100 || velocity > 500) {
-      // Swipe right to categorize
-      await controls.start({ x: 100, transition: { type: 'spring', bounce: 0.5 } });
-      if (onCategorize) {
-        onCategorize(tx);
-      }
-      // Snap back after a short delay
-      setTimeout(() => {
-        controls.start({ x: 0, transition: { type: 'spring', bounce: 0.5 } });
-      }, 500);
     } else {
       // Snap back
       controls.start({ x: 0, transition: { type: 'spring', bounce: 0.5 } });
@@ -58,10 +48,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ tx, onDelete, 
       className="relative overflow-hidden rounded-2xl mb-3 bg-black/40 border border-white/5"
     >
       {/* Background actions */}
-      <div className="absolute inset-0 flex items-center justify-between px-6 bg-zinc-900/80 rounded-2xl pointer-events-none">
-        <div className="text-[#00f0ff] font-medium flex items-center gap-2 opacity-80">
-          <Tag className="w-5 h-5" /> Categorize
-        </div>
+      <div className="absolute inset-0 flex items-center justify-end px-6 bg-zinc-900/80 rounded-2xl pointer-events-none">
         <div className="text-red-500 font-medium flex items-center gap-2 opacity-80">
           Delete <Trash2 className="w-5 h-5" />
         </div>

@@ -97,15 +97,54 @@ export default function Dashboard() {
     
   const balance = totalIncome - totalExpense;
 
-  // Calculate current month's expenses
+  // Calculate current month's income and expenses
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
+  
+  const lastMonthDate = new Date();
+  lastMonthDate.setMonth(currentMonth - 1);
+  const lastMonth = lastMonthDate.getMonth();
+  const lastMonthYear = lastMonthDate.getFullYear();
+
+  const currentMonthIncome = transactions
+    .filter(t => {
+      const d = new Date(t.date);
+      return t.type === 'income' && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    })
+    .reduce((sum, t) => sum + t.amount, 0);
+
   const currentMonthExpenses = transactions
     .filter(t => {
       const d = new Date(t.date);
       return t.type === 'expense' && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     })
     .reduce((sum, t) => sum + t.amount, 0);
+
+  const lastMonthIncome = transactions
+    .filter(t => {
+      const d = new Date(t.date);
+      return t.type === 'income' && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+    })
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const lastMonthExpenses = transactions
+    .filter(t => {
+      const d = new Date(t.date);
+      return t.type === 'expense' && d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+    })
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const currentMonthBalance = currentMonthIncome - currentMonthExpenses;
+  const lastMonthBalance = lastMonthIncome - lastMonthExpenses;
+
+  let balancePercentageChange = 0;
+  if (lastMonthBalance !== 0) {
+    balancePercentageChange = ((currentMonthBalance - lastMonthBalance) / Math.abs(lastMonthBalance)) * 100;
+  } else if (currentMonthBalance > 0) {
+    balancePercentageChange = 100;
+  } else if (currentMonthBalance < 0) {
+    balancePercentageChange = -100;
+  }
 
   const { budget, updateBudget } = useFinanceStore();
   const { theme, toggleTheme } = useThemeStore();
@@ -265,9 +304,9 @@ export default function Dashboard() {
                     <h2 className="text-5xl font-bold tracking-tight text-white mb-4">
                       <AnimatedCounter value={balance} prefix="₹" />
                     </h2>
-                    <div className="inline-flex items-center gap-1.5 text-xs font-medium text-[#10b981] bg-[#10b981]/10 px-2.5 py-1 rounded-full border border-[#10b981]/20">
-                      <TrendingUp className="w-3.5 h-3.5" />
-                      <span>+2.4% this month</span>
+                    <div className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${balancePercentageChange >= 0 ? 'text-[#10b981] bg-[#10b981]/10 border-[#10b981]/20' : 'text-red-400 bg-red-500/10 border-red-500/20'}`}>
+                      {balancePercentageChange >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                      <span>{balancePercentageChange >= 0 ? '+' : ''}{balancePercentageChange.toFixed(1)}% this month</span>
                     </div>
                   </div>
                 </motion.div>
