@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#080F26" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="emerald" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <linearGradient id="blue" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#00f0ff" />
+    </linearGradient>
+    <filter id="glow-emerald" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="25" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glow-blue" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="30" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background with transparent corners -->
+  <rect width="1024" height="1024" rx="225" fill="url(#bg)" />
+
+  <!-- Coin Outer Ring -->
+  <circle cx="512" cy="512" r="320" fill="none" stroke="url(#emerald)" stroke-width="24" filter="url(#glow-emerald)" opacity="0.4" />
+  <circle cx="512" cy="512" r="320" fill="none" stroke="url(#emerald)" stroke-width="8" />
+  
+  <!-- Coin Inner Dashed Ring -->
+  <circle cx="512" cy="512" r="270" fill="none" stroke="url(#emerald)" stroke-width="6" stroke-dasharray="15 15" opacity="0.6" />
+
+  <!-- Bar Chart -->
+  <g transform="translate(0, 40)">
+    <rect x="330" y="520" width="64" height="140" rx="16" fill="url(#emerald)" filter="url(#glow-emerald)" opacity="0.7" />
+    <rect x="480" y="420" width="64" height="240" rx="16" fill="url(#emerald)" filter="url(#glow-emerald)" opacity="0.85" />
+    <rect x="630" y="280" width="64" height="380" rx="16" fill="url(#emerald)" filter="url(#glow-emerald)" />
+  </g>
+
+  <!-- Upward Arrow Line -->
+  <path d="M 240 620 L 400 460 L 520 540 L 740 280" fill="none" stroke="url(#blue)" stroke-width="44" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-blue)" />
+  
+  <!-- Arrow Head -->
+  <path d="M 630 280 L 780 240 L 740 390 Z" fill="url(#blue)" filter="url(#glow-blue)" stroke="url(#blue)" stroke-width="10" stroke-linejoin="round" />
+  
+  <!-- Sparkle / Accent -->
+  <circle cx="760" cy="260" r="16" fill="#ffffff" filter="url(#glow-blue)" />
+</svg>
