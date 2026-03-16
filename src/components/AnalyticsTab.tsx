@@ -34,7 +34,7 @@ export default function AnalyticsTab({ itemVariants }: { itemVariants: any }) {
     .sort((a, b) => b.value - a.value);
 
   // Calculate cumulative wealth over time for Line Chart
-  const wealthData = transactions
+  const wealthData = [...transactions]
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .reduce((acc: any[], curr) => {
       const date = format(new Date(curr.date), 'MMM dd');

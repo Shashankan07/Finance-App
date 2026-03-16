@@ -106,7 +106,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   addTransaction: async (transactionData) => {
     const { user } = useAuthStore.getState();
     if (!user) return;
-    set({ loading: true, error: null });
+    set({ error: null });
     try {
       const newTx = {
         ...transactionData,
@@ -115,17 +115,17 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       };
       await addDoc(collection(db, 'transactions'), newTx);
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      set({ error: error.message });
       handleFirestoreError(error, OperationType.CREATE, 'transactions');
     }
   },
 
   deleteTransaction: async (id) => {
-    set({ loading: true, error: null });
+    set({ error: null });
     try {
       await deleteDoc(doc(db, 'transactions', id));
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      set({ error: error.message });
       handleFirestoreError(error, OperationType.DELETE, `transactions/${id}`);
     }
   },
@@ -168,22 +168,22 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   addSaving: async (savingData) => {
     const { user } = useAuthStore.getState();
     if (!user) return;
-    set({ loading: true, error: null });
+    set({ error: null });
     try {
       const newItem = { ...savingData, userId: user.uid };
       await addDoc(collection(db, 'savings'), newItem);
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      set({ error: error.message });
       handleFirestoreError(error, OperationType.CREATE, 'savings');
     }
   },
 
   deleteSaving: async (id) => {
-    set({ loading: true, error: null });
+    set({ error: null });
     try {
       await deleteDoc(doc(db, 'savings', id));
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      set({ error: error.message });
       handleFirestoreError(error, OperationType.DELETE, `savings/${id}`);
     }
   },
@@ -226,22 +226,22 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   addGoal: async (goalData) => {
     const { user } = useAuthStore.getState();
     if (!user) return;
-    set({ loading: true, error: null });
+    set({ error: null });
     try {
       const newItem = { ...goalData, userId: user.uid };
       await addDoc(collection(db, 'goals'), newItem);
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      set({ error: error.message });
       handleFirestoreError(error, OperationType.CREATE, 'goals');
     }
   },
 
   deleteGoal: async (id) => {
-    set({ loading: true, error: null });
+    set({ error: null });
     try {
       await deleteDoc(doc(db, 'goals', id));
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      set({ error: error.message });
       handleFirestoreError(error, OperationType.DELETE, `goals/${id}`);
     }
   },

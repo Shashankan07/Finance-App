@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, animate } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { useFinanceStore } from '../store/financeStore';
@@ -47,16 +47,18 @@ import {
 } from 'recharts';
 
 function AnimatedCounter({ value, prefix = '' }: { value: number, prefix?: string }) {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(value);
+  const prevValue = useRef(value);
   
   useEffect(() => {
-    const controls = animate(0, value, {
-      duration: 2,
+    const controls = animate(prevValue.current, value, {
+      duration: 1,
       ease: "easeOut",
       onUpdate(val) {
         setCount(val);
       }
     });
+    prevValue.current = value;
     return () => controls.stop();
   }, [value]);
 
