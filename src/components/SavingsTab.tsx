@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ShieldCheck, Plane, Home, Car, Heart, X, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, ShieldCheck, Plane, Home, Car, Heart, X, Trash2, ArrowLeft, AlertCircle, TrendingUp } from 'lucide-react';
 import { useFinanceStore } from '../store/financeStore';
 
 const ICONS: Record<string, any> = {
@@ -12,13 +12,24 @@ const ICONS: Record<string, any> = {
 };
 
 export default function SavingsTab({ itemVariants, setActiveTab }: { itemVariants: any, setActiveTab?: (tab: string) => void }) {
-  const { savings, addSaving, deleteSaving } = useFinanceStore();
+  const { savings, transactions, addSaving, deleteSaving } = useFinanceStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState('');
   const [target, setTarget] = useState('');
   const [current, setCurrent] = useState('');
   const [icon, setIcon] = useState('ShieldCheck');
   const [color, setColor] = useState('#10b981');
+
+  // Calculate balance
+  const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  const balance = totalIncome - totalExpense;
+
+  // Calculate savings totals
+  const totalSaved = savings.reduce((sum, s) => sum + s.current, 0);
+  const totalTarget = savings.reduce((sum, s) => sum + s.target, 0);
+  const availableToSave = balance - totalSaved;
+  const shortfallToTarget = totalTarget - balance;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +54,7 @@ export default function SavingsTab({ itemVariants, setActiveTab }: { itemVariant
   return (
     <div className="space-y-6">
       {/* Header Section */}
-      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
         <div className="flex items-center gap-4">
           {setActiveTab && (
             <button 
@@ -64,6 +75,61 @@ export default function SavingsTab({ itemVariants, setActiveTab }: { itemVariant
         >
           <Plus className="w-4 h-4" /> New Bucket
         </button>
+      </motion.div>
+
+      {/* Savings Overview & Sync Card */}
+      <motion.div variants={itemVariants} className="bg-[#0f172a]/80 border border-white/5 rounded-[2rem] p-6 backdrop-blur-2xl relative overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+          <div>
+            <p className="text-zinc-400 text-sm font-medium mb-1">Current Balance</p>
+            <p className="text-2xl font-bold text-white">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div>
+            <p className="text-zinc-400 text-sm font-medium mb-1">Total Allocated to Savings</p>
+            <p className="text-2xl font-bold text-[#00f0ff]">₹{totalSaved.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+          </div>
+          <div>
+            <p className="text-zinc-400 text-sm font-medium mb-1">Total Savings Target</p>
+            <p className="text-2xl font-bold text-[#10b981]">₹{totalTarget.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+          </div>
+        </div>
+
+        {/* Sync Status / Alerts */}
+        <div className="mt-6 pt-6 border-t border-white/10">
+          {availableToSave < 0 ? (
+            <div className="flex items-start gap-3 text-red-400 bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Balance is too low!</p>
+                <p className="text-sm mt-1">
+                  Your allocated savings (₹{totalSaved.toLocaleString('en-IN')}) exceed your current balance (₹{balance.toLocaleString('en-IN')}). 
+                  You need <span className="font-bold">₹{Math.abs(availableToSave).toLocaleString('en-IN')}</span> more to fund your current savings.
+                </p>
+              </div>
+            </div>
+          ) : shortfallToTarget > 0 ? (
+            <div className="flex items-start gap-3 text-amber-400 bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl">
+              <TrendingUp className="w-5 h-5 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Keep growing your balance!</p>
+                <p className="text-sm mt-1">
+                  You have ₹{availableToSave.toLocaleString('en-IN')} available to allocate. 
+                  You need <span className="font-bold">₹{shortfallToTarget.toLocaleString('en-IN')}</span> more in your total balance to reach all your savings goals.
+                </p>
+              </div>
+            </div>
+          ) : totalTarget > 0 && shortfallToTarget <= 0 ? (
+            <div className="flex items-start gap-3 text-[#10b981] bg-[#10b981]/10 border border-[#10b981]/20 p-4 rounded-xl">
+              <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Goals Achievable!</p>
+                <p className="text-sm mt-1">
+                  Your current balance is sufficient to fully fund all your savings targets. Great job!
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
