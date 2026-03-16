@@ -33,12 +33,12 @@ export default function SavingsTab({ itemVariants, setActiveTab }: { itemVariant
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !target || !current) return;
+    if (!name || !target) return;
 
     await addSaving({
       name,
       target: parseFloat(target),
-      current: parseFloat(current),
+      current: 0,
       icon,
       color,
     });
@@ -79,14 +79,10 @@ export default function SavingsTab({ itemVariants, setActiveTab }: { itemVariant
 
       {/* Savings Overview & Sync Card */}
       <motion.div variants={itemVariants} className="bg-[#0f172a]/80 border border-white/5 rounded-[2rem] p-6 backdrop-blur-2xl relative overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
           <div>
             <p className="text-zinc-400 text-sm font-medium mb-1">Current Balance</p>
             <p className="text-2xl font-bold text-white">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-          </div>
-          <div>
-            <p className="text-zinc-400 text-sm font-medium mb-1">Total Allocated to Savings</p>
-            <p className="text-2xl font-bold text-[#00f0ff]">₹{totalSaved.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
           </div>
           <div>
             <p className="text-zinc-400 text-sm font-medium mb-1">Total Savings Target</p>
@@ -134,7 +130,8 @@ export default function SavingsTab({ itemVariants, setActiveTab }: { itemVariant
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {savings.length > 0 ? savings.map(saving => {
-          const progress = Math.min((saving.current / saving.target) * 100, 100);
+          const progress = balance > 0 ? Math.min((balance / saving.target) * 100, 100) : 0;
+          const isCompleted = balance >= saving.target;
           const IconComponent = ICONS[saving.icon] || ShieldCheck;
           
           return (
@@ -161,14 +158,18 @@ export default function SavingsTab({ itemVariants, setActiveTab }: { itemVariant
               </div>
               
               <div className="mb-2 flex justify-between items-end relative z-10">
-                <span className="text-3xl font-bold text-white">₹{saving.current.toLocaleString('en-IN')}</span>
-                <span className="text-sm font-medium" style={{ color: saving.color }}>{progress.toFixed(1)}%</span>
+                <span className={`text-lg font-bold ${isCompleted ? 'text-[#10b981]' : 'text-zinc-400'}`}>
+                  {isCompleted ? 'Goal Achievable' : 'Not Achievable Yet'}
+                </span>
+                <span className="text-sm font-medium" style={{ color: isCompleted ? '#10b981' : saving.color }}>
+                  {progress.toFixed(1)}%
+                </span>
               </div>
               
               <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden relative z-10">
                 <div 
                   className="h-full rounded-full transition-all duration-1000" 
-                  style={{ width: `${progress}%`, backgroundColor: saving.color }}
+                  style={{ width: `${progress}%`, backgroundColor: isCompleted ? '#10b981' : saving.color }}
                 />
               </div>
             </motion.div>
@@ -209,7 +210,7 @@ export default function SavingsTab({ itemVariants, setActiveTab }: { itemVariant
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-zinc-400 mb-2">Target Amount</label>
                     <div className="relative">
@@ -218,20 +219,6 @@ export default function SavingsTab({ itemVariants, setActiveTab }: { itemVariant
                         type="number"
                         value={target}
                         onChange={(e) => setTarget(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-8 pr-4 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#00f0ff]/50 transition-all"
-                        placeholder="0.00"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-zinc-400 mb-2">Current Amount</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 font-medium">₹</span>
-                      <input
-                        type="number"
-                        value={current}
-                        onChange={(e) => setCurrent(e.target.value)}
                         className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-8 pr-4 text-white font-medium focus:outline-none focus:ring-2 focus:ring-[#00f0ff]/50 transition-all"
                         placeholder="0.00"
                         required
