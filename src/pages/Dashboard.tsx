@@ -7,7 +7,6 @@ import { signOut } from 'firebase/auth';
 import { format } from 'date-fns';
 import AddTransactionModal from '../components/AddTransactionModal';
 import MoneyAnimation from '../components/MoneyAnimation';
-import InvestmentsTab from '../components/InvestmentsTab';
 import SavingsTab from '../components/SavingsTab';
 import GoalsTab from '../components/GoalsTab';
 import AdminTab from '../components/AdminTab';
@@ -521,7 +520,6 @@ export default function Dashboard() {
             </motion.div>
           )}
 
-          {activeTab === 'investments' && <InvestmentsTab itemVariants={itemVariants} />}
           {activeTab === 'savings' && <SavingsTab itemVariants={itemVariants} setActiveTab={setActiveTab} />}
           {activeTab === 'goals' && <GoalsTab itemVariants={itemVariants} setActiveTab={setActiveTab} />}
           {activeTab === 'analytics' && <AnalyticsTab itemVariants={itemVariants} />}
@@ -547,8 +545,8 @@ export default function Dashboard() {
           {[
             { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
             { id: 'transactions', icon: CreditCard, label: 'Transactions' },
-            { id: 'investments', icon: TrendingUp, label: 'Investments' },
-            { id: 'analytics', icon: BarChart2, label: 'Analytics' },
+            { id: 'savings', icon: PiggyBank, label: 'Savings' },
+            { id: 'goals', icon: Target, label: 'Goals' },
             { id: 'profile', icon: User, label: 'Profile' },
           ].map((item) => {
             const isActive = activeTab === item.id;

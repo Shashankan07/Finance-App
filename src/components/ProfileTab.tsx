@@ -203,61 +203,19 @@ export default function ProfileTab({ itemVariants, setActiveTab }: { itemVariant
         </div>
 
         <div className="space-y-4 relative z-10">
-          {setActiveTab && (
-            <>
-              <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group cursor-pointer" onClick={() => setActiveTab('savings')}>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#10b981]/20 to-transparent border border-[#10b981]/20 flex items-center justify-center">
-                    <PiggyBank className="w-5 h-5 text-[#10b981]" />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-medium group-hover:text-[#10b981] transition-colors">Savings Tracker</h4>
-                    <p className="text-sm text-zinc-500 mt-1">Manage your savings buckets.</p>
-                  </div>
+          {setActiveTab && user?.email === 'invotrack25@gmail.com' && (
+            <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group cursor-pointer" onClick={() => setActiveTab('admin')}>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-transparent border border-purple-500/20 flex items-center justify-center">
+                  <ShieldAlert className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <h4 className="text-white font-medium group-hover:text-purple-400 transition-colors">Admin Dashboard</h4>
+                  <p className="text-sm text-zinc-500 mt-1">Manage users and system activity.</p>
                 </div>
               </div>
-
-              <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group cursor-pointer" onClick={() => setActiveTab('goals')}>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00f0ff]/20 to-transparent border border-[#00f0ff]/20 flex items-center justify-center">
-                    <Target className="w-5 h-5 text-[#00f0ff]" />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-medium group-hover:text-[#00f0ff] transition-colors">Financial Goals</h4>
-                    <p className="text-sm text-zinc-500 mt-1">Track your long-term goals.</p>
-                  </div>
-                </div>
-              </div>
-
-              {user?.email === 'invotrack25@gmail.com' && (
-                <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group cursor-pointer" onClick={() => setActiveTab('admin')}>
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-transparent border border-purple-500/20 flex items-center justify-center">
-                      <ShieldAlert className="w-5 h-5 text-purple-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-white font-medium group-hover:text-purple-400 transition-colors">Admin Dashboard</h4>
-                      <p className="text-sm text-zinc-500 mt-1">Manage users and system activity.</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group">
-            <div>
-              <h4 className="text-white font-medium group-hover:text-[#00f0ff] transition-colors">Appearance</h4>
-              <p className="text-sm text-zinc-500 mt-1">Switch between dark and light mode.</p>
             </div>
-            <button 
-              onClick={toggleTheme}
-              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white px-4 py-2.5 rounded-xl transition-colors font-medium text-sm border border-white/10"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-            </button>
-          </div>
+          )}
 
           <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group">
             <div>
