@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../store/authStore';
 import { useFinanceStore } from '../store/financeStore';
 import { useThemeStore } from '../store/themeStore';
-import { Download, LogOut, User, Mail, ShieldCheck, CloudUpload, Moon, Sun, PiggyBank, Target, ShieldAlert } from 'lucide-react';
+import { Download, LogOut, User, Mail, ShieldCheck, CloudUpload, Moon, Sun, PiggyBank, Target, ShieldAlert, Smartphone } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut, GoogleAuthProvider, linkWithPopup, signInWithPopup } from 'firebase/auth';
 import jsPDF from 'jspdf';
@@ -15,6 +15,37 @@ export default function ProfileTab({ itemVariants, setActiveTab }: { itemVariant
   const { transactions, savings, goals } = useFinanceStore();
   const { theme, toggleTheme } = useThemeStore();
   const [isUploading, setIsUploading] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    // Check if prompt is already available
+    if (window.deferredPrompt) {
+      setDeferredPrompt(window.deferredPrompt);
+    }
+
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+      window.deferredPrompt = null;
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -216,6 +247,25 @@ export default function ProfileTab({ itemVariants, setActiveTab }: { itemVariant
               </div>
             </div>
           )}
+
+          <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group">
+            <div>
+              <h4 className="text-white font-medium group-hover:text-[#00f0ff] transition-colors">Install App</h4>
+              <p className="text-sm text-zinc-500 mt-1">Install Smart Finance on your device for quick access.</p>
+            </div>
+            <button 
+              onClick={() => {
+                if (deferredPrompt) {
+                  handleInstallApp();
+                } else {
+                  alert("To install the app:\n\nOn iOS: Tap the Share button at the bottom of Safari and select 'Add to Home Screen'.\n\nOn Android/Windows: Look for the install icon in your browser's address bar or menu.");
+                }
+              }}
+              className="flex items-center gap-2 bg-[#00f0ff]/10 hover:bg-[#00f0ff]/20 text-[#00f0ff] px-4 py-2.5 rounded-xl transition-colors font-medium text-sm border border-[#00f0ff]/20"
+            >
+              <Smartphone className="w-4 h-4" /> Install
+            </button>
+          </div>
 
           <div className="p-5 rounded-2xl bg-[#0a0a0a] border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group">
             <div>

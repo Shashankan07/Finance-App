@@ -27,9 +27,24 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+declare global {
+  interface Window {
+    deferredPrompt: any;
+  }
+}
+
 export default function App() {
   const { setUser, setAuthReady } = useAuthStore();
   const { theme } = useThemeStore();
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      window.deferredPrompt = e;
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
 
   useEffect(() => {
     if (theme === 'light') {
