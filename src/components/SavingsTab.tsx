@@ -151,7 +151,7 @@ export default function SavingsTab({ itemVariants, setActiveTab }: { itemVariant
                 </div>
                 <button 
                   onClick={() => deleteSaving(saving.id)}
-                  className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                  className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
