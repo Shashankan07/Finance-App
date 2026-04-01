@@ -3,9 +3,11 @@ import { motion, useAnimation, useMotionValue, useTransform } from 'framer-motio
 import { useAuthStore } from '../store/authStore';
 import { ShieldCheck, Zap, Mail, Lock, ArrowRight, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithCredential, GoogleAuthProvider, RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { collection, addDoc } from 'firebase/firestore';
 import { auth, googleProvider, microsoftProvider, appleProvider, twitterProvider, setupRecaptcha, db } from '../firebase';
+import { Capacitor } from '@capacitor/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import LoginBackground from '../components/LoginBackground';
 import MoneyAnimation from '../components/MoneyAnimation';
 import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
@@ -34,6 +36,17 @@ export default function Login() {
   // Parallax transforms for the card
   const rotateX = useTransform(mouseY, [-0.5, 0.5], [5, -5]);
   const rotateY = useTransform(mouseX, [-0.5, 0.5], [-5, 5]);
+
+  useEffect(() => {
+    // Initialize Google Auth for Native Android/iOS
+    if (Capacitor.isNativePlatform()) {
+      GoogleAuth.initialize({
+        clientId: 'YOUR_WEB_CLIENT_ID_HERE.apps.googleusercontent.com', // REPLACE THIS
+        scopes: ['profile', 'email'],
+        grantOfflineAccess: true,
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -121,9 +134,19 @@ export default function Login() {
       setLoading(true);
       setError('');
       
-      await signInWithPopup(auth, googleProvider);
+      if (Capacitor.isNativePlatform()) {
+        // Native Android/iOS Google Login
+        const googleUser = await GoogleAuth.signIn();
+        const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
+        await signInWithCredential(auth, credential);
+      } else {
+        // Web Google Login
+        await signInWithPopup(auth, googleProvider);
+      }
+      
       // onAuthStateChanged in App.tsx will handle the redirect
     } catch (err: any) {
+      console.error("Google Sign-In Error:", err);
       setError(err.message || 'Failed to sign in with Google');
       setLoading(false);
     }
@@ -437,40 +460,55 @@ export default function Login() {
               </button>
 
               <button
-                onClick={handleMicrosoftSignIn}
-                disabled={loading}
+                type="button"
+                onClick={(e) => e.preventDefault()}
                 className="group relative flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-300 py-3 px-4 rounded-xl font-medium text-sm text-white overflow-hidden"
               >
-                <svg className="w-5 h-5" viewBox="0 0 23 23">
-                  <path fill="#f3f3f3" d="M0 0h23v23H0z"/>
-                  <path fill="#f35325" d="M1 1h10v10H1z"/>
-                  <path fill="#81bc06" d="M12 1h10v10H12z"/>
-                  <path fill="#05a6f0" d="M1 12h10v10H1z"/>
-                  <path fill="#ffba08" d="M12 12h10v10H12z"/>
-                </svg>
-                <span>Microsoft</span>
+                <div className="flex items-center justify-center gap-2 group-hover:opacity-0 transition-opacity duration-300 absolute inset-0">
+                  <svg className="w-5 h-5" viewBox="0 0 23 23">
+                    <path fill="#f3f3f3" d="M0 0h23v23H0z"/>
+                    <path fill="#f35325" d="M1 1h10v10H1z"/>
+                    <path fill="#81bc06" d="M12 1h10v10H12z"/>
+                    <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+                    <path fill="#ffba08" d="M12 12h10v10H12z"/>
+                  </svg>
+                  <span>Microsoft</span>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="text-red-500 font-bold animate-pulse">Coming Soon</span>
+                </div>
               </button>
 
               <button
-                onClick={handleAppleSignIn}
-                disabled={loading}
+                type="button"
+                onClick={(e) => e.preventDefault()}
                 className="group relative flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-300 py-3 px-4 rounded-xl font-medium text-sm text-white overflow-hidden"
               >
-                <svg className="w-5 h-5" viewBox="0 0 384 512" fill="currentColor">
-                  <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
-                </svg>
-                <span>Apple</span>
+                <div className="flex items-center justify-center gap-2 group-hover:opacity-0 transition-opacity duration-300 absolute inset-0">
+                  <svg className="w-5 h-5" viewBox="0 0 384 512" fill="currentColor">
+                    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+                  </svg>
+                  <span>Apple</span>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="text-red-500 font-bold animate-pulse">Coming Soon</span>
+                </div>
               </button>
 
               <button
-                onClick={handleTwitterSignIn}
-                disabled={loading}
+                type="button"
+                onClick={(e) => e.preventDefault()}
                 className="group relative flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-300 py-3 px-4 rounded-xl font-medium text-sm text-white overflow-hidden"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
-                <span>X</span>
+                <div className="flex items-center justify-center gap-2 group-hover:opacity-0 transition-opacity duration-300 absolute inset-0">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  <span>X</span>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <span className="text-red-500 font-bold animate-pulse">Coming Soon</span>
+                </div>
               </button>
             </motion.div>
             

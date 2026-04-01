@@ -80,7 +80,7 @@ export default function AnalyticsTab({ itemVariants }: { itemVariants: any }) {
           <h3 className="text-xl font-semibold mb-6 text-white relative z-10">Spending by Category</h3>
           <div className="h-[300px] w-full relative z-10">
             {pieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <PieChart>
                   <Pie
                     data={pieData}
@@ -123,7 +123,7 @@ export default function AnalyticsTab({ itemVariants }: { itemVariants: any }) {
           <h3 className="text-xl font-semibold mb-6 text-white relative z-10">Wealth Growth</h3>
           <div className="h-[300px] w-full relative z-10">
             {wealthData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={wealthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
                   <XAxis dataKey="date" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} dy={10} />

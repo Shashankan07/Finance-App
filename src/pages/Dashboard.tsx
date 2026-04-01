@@ -34,8 +34,8 @@ import {
   BarChart2
 } from 'lucide-react';
 import { 
-  LineChart, 
-  Line, 
+  AreaChart, 
+  Area, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -152,6 +152,18 @@ export default function Dashboard() {
   const { theme, toggleTheme } = useThemeStore();
   const [isSettingBudget, setIsSettingBudget] = useState(false);
   const [newBudget, setNewBudget] = useState(budget?.toString() || '');
+  const chartScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chartScrollRef.current) {
+      // Small delay to ensure rendering is complete before scrolling
+      setTimeout(() => {
+        if (chartScrollRef.current) {
+          chartScrollRef.current.scrollLeft = chartScrollRef.current.scrollWidth;
+        }
+      }, 100);
+    }
+  }, [transactions]);
 
   const handleBudgetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,21 +179,22 @@ export default function Dashboard() {
 
   // Prepare chart data
   const chartData = transactions.reduce((acc: any[], curr) => {
-    const month = format(curr.date, 'MMM');
-    const existing = acc.find(item => item.name === month);
+    const day = format(new Date(curr.date), 'MMM dd');
+    const existing = acc.find(item => item.name === day);
     
     if (existing) {
       if (curr.type === 'income') existing.income += curr.amount;
       else existing.expenses += curr.amount;
     } else {
       acc.push({
-        name: month,
+        name: day,
         income: curr.type === 'income' ? curr.amount : 0,
-        expenses: curr.type === 'expense' ? curr.amount : 0
+        expenses: curr.type === 'expense' ? curr.amount : 0,
+        dateObj: new Date(curr.date)
       });
     }
     return acc;
-  }, []).reverse();
+  }, []).sort((a: any, b: any) => a.dateObj.getTime() - b.dateObj.getTime());
 
   // Prepare category data
   const categoryData = transactions
@@ -418,21 +431,36 @@ export default function Dashboard() {
                   className="lg:col-span-2 bg-[#0f172a]/80 border border-white/5 rounded-[2rem] p-8 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
                 >
                   <h3 className="text-xl font-semibold mb-8 text-white">Cash Flow</h3>
-                  <div className="h-[300px] w-full">
+                  <div 
+                    className="h-[300px] w-full overflow-x-auto overflow-y-hidden hide-scrollbar touch-pan-x scroll-smooth" 
+                    ref={chartScrollRef}
+                  >
                     {chartData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                          <XAxis dataKey="name" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
-                          <YAxis stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
-                          <Tooltip 
-                            contentStyle={{ backgroundColor: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }}
-                            itemStyle={{ color: '#e4e4e7' }}
-                          />
-                          <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#0f172a' }} activeDot={{ r: 6, strokeWidth: 0 }} animationDuration={1500} />
-                          <Line type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={3} dot={{ r: 4, fill: '#ef4444', strokeWidth: 2, stroke: '#0f172a' }} activeDot={{ r: 6, strokeWidth: 0 }} animationDuration={1500} />
-                        </LineChart>
-                      </ResponsiveContainer>
+                      <div style={{ minWidth: `${Math.max(100, chartData.length * 60)}px`, height: '100%' }}>
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                              </linearGradient>
+                              <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                            <XAxis dataKey="name" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
+                            <Tooltip 
+                              contentStyle={{ backgroundColor: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }}
+                              itemStyle={{ color: '#e4e4e7' }}
+                            />
+                            <Area type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" animationDuration={1500} />
+                            <Area type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={3} fillOpacity={1} fill="url(#colorExpense)" animationDuration={1500} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
                     ) : (
                       <div className="h-full flex items-center justify-center text-zinc-600 font-medium">
                         No data available yet
@@ -448,7 +476,7 @@ export default function Dashboard() {
                   <h3 className="text-xl font-semibold mb-8 text-white">Top Categories</h3>
                   <div className="flex-1 min-h-[200px] flex items-center justify-center relative">
                     {categoryData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                         <PieChart>
                           <Tooltip 
                             contentStyle={{ backgroundColor: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }}

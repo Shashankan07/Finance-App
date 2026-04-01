@@ -1,10 +1,25 @@
 {
+  "id": "com.smartfinance.app",
   "name": "Smart Finance",
   "short_name": "Smart Finance",
+  "description": "Next-generation financial clarity. Track your expenses, manage your budget, and achieve your financial goals.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#10b981",
+  "background_color": "#050505",
+  "theme_color": "#00f0ff",
+  "orientation": "any",
+  "dir": "ltr",
+  "lang": "en-US",
+  "categories": ["finance", "business", "productivity"],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "icons": [
     {
       "src": "/logo-192.png",

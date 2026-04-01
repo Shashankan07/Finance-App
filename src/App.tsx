@@ -7,6 +7,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import InstallPrompt from './components/InstallPrompt';
 import { handleFirestoreError, OperationType } from './utils/firestoreErrorHandler';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -103,6 +104,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <InstallPrompt />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
