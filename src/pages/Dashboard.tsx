@@ -431,10 +431,11 @@ export default function Dashboard() {
                   className="lg:col-span-2 bg-[#0f172a]/80 border border-white/5 rounded-[2rem] p-8 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
                 >
                   <h3 className="text-xl font-semibold mb-8 text-white">Cash Flow</h3>
-                  <div className="relative h-[300px] w-full">
-                    {/* Scrollable Chart */}
+                  <div className="flex h-[300px] w-full relative">
+                    
+                    {/* 1. Scrollable Graph Area (Moves left/right) */}
                     <div 
-                      className="h-full w-full overflow-x-auto overflow-y-hidden hide-scrollbar touch-pan-x scroll-smooth pr-[60px]" 
+                      className="flex-1 h-full overflow-x-auto overflow-y-hidden hide-scrollbar touch-pan-x scroll-smooth" 
                       ref={chartScrollRef}
                     >
                       {chartData.length > 0 ? (
@@ -453,7 +454,10 @@ export default function Dashboard() {
                               </defs>
                               <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
                               <XAxis dataKey="name" stroke="#71717a" fontSize={12} tickLine={false} axisLine={false} />
+                              
+                              {/* Y-Axis is hidden here so it doesn't scroll */}
                               <YAxis hide domain={['auto', 'auto']} />
+                              
                               <Tooltip 
                                 contentStyle={{ backgroundColor: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }}
                                 itemStyle={{ color: '#e4e4e7' }}
@@ -470,12 +474,14 @@ export default function Dashboard() {
                       )}
                     </div>
                     
-                    {/* Fixed Y-Axis on the Right (Stock Market Style) */}
+                    {/* 2. Fixed Y-Axis on the Right (Stays completely still) */}
                     {chartData.length > 0 && (
-                      <div className="absolute top-0 right-0 bottom-0 w-[60px] bg-gradient-to-l from-[#0f172a] via-[#0f172a]/90 to-transparent z-10 pointer-events-none flex flex-col">
+                      <div className="w-[65px] h-full z-10 border-l border-white/5 bg-[#0f172a]/90">
                         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                          <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                          <AreaChart data={chartData} margin={{ top: 10, right: 5, left: 0, bottom: 0 }}>
+                            {/* Invisible X-axis to keep bottom spacing identical to the main chart */}
                             <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{fill: 'transparent'}} />
+                            
                             <YAxis 
                               orientation="right" 
                               stroke="#71717a" 
@@ -485,6 +491,10 @@ export default function Dashboard() {
                               tickFormatter={(value) => `₹${value}`} 
                               domain={['auto', 'auto']}
                             />
+                            
+                            {/* Invisible areas to force the Y-axis to scale correctly */}
+                            <Area type="monotone" dataKey="income" stroke="none" fill="none" />
+                            <Area type="monotone" dataKey="expenses" stroke="none" fill="none" />
                           </AreaChart>
                         </ResponsiveContainer>
                       </div>

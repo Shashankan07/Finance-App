@@ -77,7 +77,9 @@ export default function Login() {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    const cleanEmail = email.trim(); // Automatically remove hidden accidental spaces
+    
+    if (!cleanEmail || !password) {
       setError('Please enter both email and password.');
       return;
     }
@@ -89,7 +91,7 @@ export default function Login() {
       // Log the attempt
       try {
         await addDoc(collection(db, 'login_attempts'), {
-          email,
+          email: cleanEmail,
           type: isSignUp ? 'signup' : 'login',
           timestamp: new Date().toISOString(),
           status: 'attempted'
@@ -100,9 +102,9 @@ export default function Login() {
       }
 
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        await createUserWithEmailAndPassword(auth, cleanEmail, password);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(auth, cleanEmail, password);
       }
       // onAuthStateChanged in App.tsx will handle the redirect
     } catch (err: any) {
@@ -291,10 +293,10 @@ export default function Login() {
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-[#10b981]/50 to-transparent" />
 
           <motion.div variants={itemVariants} className="text-center mb-10" style={{ transform: "translateZ(30px)" }}>
-            <div className="w-16 h-16 bg-gradient-to-br from-[#00f0ff]/20 to-[#10b981]/20 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(0,240,255,0.2)]">
-              <Zap size={32} className="text-[#00f0ff]" />
+            <div className="w-20 h-20 bg-white shadow-[0_0_30px_rgba(0,240,255,0.2)] rounded-3xl flex items-center justify-center mx-auto mb-6 p-2">
+              <img src="/logo.png" alt="Smart Finance Logo" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-4xl font-bold text-white tracking-tight mb-2">Finance App</h1>
+            <h1 className="text-4xl font-bold text-white tracking-tight mb-2">Smart Finance</h1>
             <p className="text-zinc-400 font-medium">Next-generation financial clarity.</p>
           </motion.div>
 
