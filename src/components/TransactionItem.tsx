@@ -49,7 +49,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ tx, onDelete, 
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.3 }}
-      className="relative overflow-hidden rounded-2xl mb-3 bg-black/40 border border-white/5 group"
+      className="relative overflow-hidden rounded-2xl mb-3 group bg-[#020617]"
     >
       {/* Background actions */}
       <div className="absolute inset-0 flex items-center justify-end px-6 bg-red-500/20 rounded-2xl pointer-events-none">
@@ -65,22 +65,30 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ tx, onDelete, 
         dragElastic={0.7}
         onDragEnd={handleDragEnd}
         animate={controls}
-        className="relative bg-[#0a0a0a] border border-white/5 flex items-center justify-between p-4 rounded-2xl hover:bg-white/5 transition-colors cursor-grab active:cursor-grabbing z-10"
+        whileHover={{ scale: 1.01, x: 2 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        className={`relative flex items-center justify-between p-4 rounded-2xl transition-all cursor-grab active:cursor-grabbing z-10 shadow-[0_4px_16px_rgba(0,0,0,0.2)] group/inner border ${
+          tx.type?.toLowerCase() === 'income'
+            ? 'bg-[#020617] border-white/5 hover:border-[#10b981]/30 hover:bg-gradient-to-r hover:from-[#10b981]/10 hover:to-[#020617]'
+            : 'bg-[#020617] border-white/5 hover:border-red-500/30 hover:bg-gradient-to-r hover:from-red-500/10 hover:to-[#020617]'
+        }`}
       >
         <div className="flex items-center gap-5 pointer-events-none">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
-            tx.type === 'income' ? 'bg-gradient-to-br from-[#10b981]/20 to-transparent border border-[#10b981]/20 text-[#10b981]' : 'bg-gradient-to-br from-red-500/20 to-transparent border border-red-500/20 text-red-400'
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-[inset_0_2px_10px_rgba(255,255,255,0.1)] transition-transform group-hover/inner:scale-105 duration-300 ${
+            tx.type?.toLowerCase() === 'income' 
+              ? 'bg-gradient-to-br from-[#10b981]/30 to-[#10b981]/5 border border-[#10b981]/30 text-[#10b981]' 
+              : 'bg-gradient-to-br from-red-500/30 to-red-500/5 border border-red-500/30 text-red-500'
           }`}>
-            {tx.type === 'income' ? <ArrowUpRight className="w-6 h-6" /> : <ArrowDownRight className="w-6 h-6" />}
+            {tx.type?.toLowerCase() === 'income' ? <ArrowUpRight className="w-6 h-6 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" /> : <ArrowDownRight className="w-6 h-6 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" />}
           </div>
           <div>
-            <p className="font-bold text-white text-lg group-hover:text-[#00f0ff] transition-colors">{tx.category}</p>
-            <p className="text-sm text-zinc-500 font-medium">{tx.description || 'No description'} • {format(new Date(tx.date), 'MMM d, yyyy')}</p>
+            <p className="font-bold text-white text-lg tracking-wide group-hover/inner:text-[#00f0ff] transition-colors duration-300">{tx.category}</p>
+            <p className="text-xs text-zinc-400 font-medium tracking-wide mt-1">{tx.description || 'No description'} <span className="opacity-50 mx-1">•</span> {format(new Date(tx.date), 'MMM d, yyyy')}</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className={`font-bold text-lg ${tx.type === 'income' ? 'text-[#10b981]' : 'text-white'} pointer-events-none`}>
-            {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          <div className={`font-bold text-lg font-mono tracking-widest ${tx.type?.toLowerCase() === 'income' ? 'text-[#10b981]' : 'text-red-500'} pointer-events-none drop-shadow-[0_0_12px_rgba(255,255,255,0.1)]`}>
+            {tx.type?.toLowerCase() === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </div>
           <button
             onClick={(e) => {

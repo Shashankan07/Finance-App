@@ -8,6 +8,7 @@ import { auth, db } from './firebase';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import InstallPrompt from './components/InstallPrompt';
+import AnimatedBackground from './components/AnimatedBackground';
 import { handleFirestoreError, OperationType } from './utils/firestoreErrorHandler';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -105,6 +106,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <InstallPrompt />
+      <AnimatedBackground />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route

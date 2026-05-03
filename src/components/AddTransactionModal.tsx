@@ -109,7 +109,7 @@ export default function AddTransactionModal({ isOpen, onClose }: AddTransactionM
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="w-full max-w-md bg-black/80 border border-white/10 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,240,255,0.05)] relative overflow-hidden"
+            className="w-full max-w-md bg-black/40 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,240,255,0.05)] relative overflow-hidden"
           >
             {/* Subtle glow effects */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-[#00f0ff]/50 to-transparent" />

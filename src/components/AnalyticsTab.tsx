@@ -15,6 +15,7 @@ import {
   Legend
 } from 'recharts';
 import { format } from 'date-fns';
+import { CustomTooltip } from '../pages/Dashboard';
 
 const COLORS = ['#00f0ff', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
@@ -98,11 +99,7 @@ export default function AnalyticsTab({ itemVariants }: { itemVariants: any }) {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ filter: `drop-shadow(0 0 8px ${COLORS[index % COLORS.length]}40)` }} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(10,10,10,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
-                    itemStyle={{ color: '#e4e4e7', fontWeight: 'bold' }}
-                    formatter={(value: number) => `₹${value.toLocaleString()}`}
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -135,12 +132,7 @@ export default function AnalyticsTab({ itemVariants }: { itemVariants: any }) {
                     tickFormatter={(val) => `₹${(val/1000).toFixed(0)}k`} 
                     dx={-10}
                   />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(10,10,10,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
-                    itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
-                    formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Balance']}
-                    labelStyle={{ color: '#a1a1aa', marginBottom: '4px' }}
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                   <Line 
                     type="monotone" 
                     dataKey="balance" 

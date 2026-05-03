@@ -263,11 +263,11 @@ export default function Login() {
       animate={controls}
       onViewportEnter={() => controls.start('visible')}
       variants={containerVariants}
-      className="min-h-screen bg-[#050505] flex items-center justify-center p-4 relative overflow-hidden font-sans selection:bg-[#00f0ff]/30"
+      className="min-h-screen bg-transparent flex items-center justify-center p-4 relative overflow-hidden font-sans selection:bg-[#00f0ff]/30"
       style={{ perspective: 1000 }}
     >
       {/* Deep Black Gradient Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(0,240,255,0.15),transparent_50%),radial-gradient(ellipse_at_bottom_left,rgba(16,185,129,0.15),transparent_50%)] z-0" />
+      <div className="absolute inset-0 bg-transparent z-0" />
       
       {/* 3D Background Elements */}
       <LoginBackground mouseX={mouseX} mouseY={mouseY} />
@@ -286,7 +286,7 @@ export default function Login() {
         className="relative z-10 w-full max-w-md"
       >
         <div className="absolute -inset-0.5 bg-gradient-to-br from-[#00f0ff]/30 to-[#10b981]/30 rounded-[2rem] blur-xl opacity-50 animate-pulse" style={{ transform: "translateZ(-20px)" }} />
-        <div className="relative bg-black/40 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 shadow-[0_0_50px_rgba(0,240,255,0.05)] overflow-hidden" style={{ transform: "translateZ(0px)" }}>
+        <div className="relative bg-white/[0.02] backdrop-blur-3xl border border-white/[0.05] rounded-[3rem] p-10 shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden" style={{ transform: "translateZ(0px)" }}>
           
           {/* Internal subtle glow */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-[#00f0ff]/50 to-transparent" />
