@@ -293,9 +293,6 @@ export default function Login() {
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-[#10b981]/50 to-transparent" />
 
           <motion.div variants={itemVariants} className="text-center mb-10" style={{ transform: "translateZ(30px)" }}>
-            <div className="w-20 h-20 bg-white shadow-[0_0_30px_rgba(0,240,255,0.2)] rounded-3xl flex items-center justify-center mx-auto mb-6 p-2">
-              <img src="/logo.png" alt="Smart Finance Logo" className="w-full h-full object-contain" />
-            </div>
             <h1 className="text-4xl font-bold text-white tracking-tight mb-2">Smart Finance</h1>
             <p className="text-zinc-400 font-medium">Next-generation financial clarity.</p>
           </motion.div>
